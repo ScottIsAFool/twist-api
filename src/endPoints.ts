@@ -1,0 +1,20 @@
+const users = "users/";
+const workspaces = "workspaces/";
+export const getSessionUser = users + "get_session_user";
+export const updateUser = users + "update";
+export const updatePassword = users + "update_password";
+export const updateAvatar = users + "update_avatar";
+export const setPresence = users + "heartbeat";
+export const resetPresence = users + "reset_presence";
+export const resetPassword = users + "reset_password";
+export const setPassword = users + "set_password";
+export const isConnectedToGoogle = users + "is_connected_to_google";
+export const disconnectFromGoogle = users + "disconnect_google";
+
+export const getWorkspace = workspaces + "getone";
+export const getDefaultWorkspace = workspaces + "get_default";
+export const getAllWorkspaces = workspaces + "get";
+export const addWorkspace = workspaces + "add";
+export const updateWorkspace = workspaces + "update";
+export const removeWorkspace = workspaces + "remove";
+export const getWorkspaceUsers = workspaces + "get_users";

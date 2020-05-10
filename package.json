@@ -1,0 +1,33 @@
+{
+  "name": "twist-api",
+  "version": "0.0.1",
+  "description": "Typescript/Javascript wrapper for the Twist REST API",
+  "main": "js/twistClient.js",
+  "types": "js/twistClient.d.ts",
+  "scripts": {
+    "build": "tsc --build",
+    "start": "node ./out/app.js",
+    "test": "jest"
+  },
+  "files": [
+    "js/**/*"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ScottIsAFool/twist-api.git"
+  },
+  "author": "Scott Lovegrove",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ScottIsAFool/twist-api/issues"
+  },
+  "homepage": "https://github.com/ScottIsAFool/twist-api#readme",
+  "dependencies": {
+    "@types/jest": "^25.2.1",
+    "axios": "^0.19.2",
+    "jest": "^26.0.1",
+    "ts-jest": "^25.5.1",
+    "ts-node": "^8.10.1",
+    "typescript": "^3.8.3"
+  }
+}
