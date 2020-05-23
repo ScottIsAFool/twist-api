@@ -2,8 +2,9 @@ import * as endPoints from './endpoints';
 
 import { User, Workspace } from './entities';
 import { authUrl, baseUrl, tokenUrl } from './consts';
-import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
+import axios, { AxiosRequestConfig, AxiosResponse, AxiosStatic } from 'axios';
 
+import create from '@alcadica/state-manager';
 import { scopes } from './Scopes';
 
 export enum platform {
@@ -23,292 +24,270 @@ interface UpdateWorkspaceOptions {
     color?: number;
 };
 
-export class TwistClient {
-    constructor(
-        clientSecret: string,
-        clientId: string
-    ) {
-        this._clientId = clientId;
-        this._clientSecret = clientSecret;
-    }
+interface ClientDetails {
+    clientSecret: string;
+    clientId: string;
+};
 
-    private _clientSecret: string;
-    private _clientId: string
-    private _accessToken: string | undefined;
+const clientDetailsState = create<ClientDetails>();
+const accessTokenState = create<AccessToken>();
 
-    //#region Auth methods
+const accessToken = () => accessTokenState.getState().access_token;
+const clientId = () => clientDetailsState.getState().clientId;
+const clientSecret = () => clientDetailsState.getState().clientSecret;
 
-    setAccessToken(accessToken: string) {
-        this._accessToken = accessToken;
-    }
+//#region Auth methods
 
-    getAuthUrl(scopes: scopes[], state: string) {
-        const scope = scopes.toString();
-        const s = `${authUrl}?client_id=${this._clientId}&scope=${scope}&state=${state}`;
-        return s;
-    }
+export const setClientDetails = (
+    clientSecret: string,
+    clientId: string
+) => {
+    clientDetailsState.update({
+        clientId: clientId,
+        clientSecret: clientSecret
+    });
+};
 
-    async exchangeToken(code: string): Promise<string> {
-        const data = {
-            client_id: this._clientId,
-            client_secret: this._clientSecret,
-            code: code
-        };
+export const setAccessToken = (accessToken: string) => {
+    accessTokenState.update({ access_token: accessToken });
+};
 
-        const response = await axios.post(tokenUrl, data);
+export const getAuthUrl = (scopes: scopes[], state: string) => {
+    const scope = scopes.toString();
+    return `${authUrl}?client_id=${clientId()}&scope=${scope}&state=${state}`;
+};
 
-        if (response.status !== 200)
-            throw Error;
+export const exchangeToken = async (code: string): Promise<string> => {
+    const data = {
+        client_id: clientId(),
+        client_secret: clientSecret(),
+        code: code
+    };
 
-        const accessToken: AccessToken = response.data;
+    const response = await axios.post(tokenUrl, data);
 
-        return accessToken.access_token;
-    }
+    if (response.status !== 200)
+        throw Error;
 
-    //#endregion
+    const accessToken: AccessToken = response.data;
 
-    //#region User methods
+    return accessToken.access_token;
+};
 
-    getSessionUser(): Promise<User> {
-        return this.get<User>(endPoints.getSessionUser);
-    }
+//#endregion
 
-    updateUser(user: User): Promise<User> {
-        return this.post<User>(endPoints.updateUser, user);
-    }
+//#region User methods
 
-    updatePassword(updatedPassword: string): Promise<User> {
-        this.throwIfEmpty(updatedPassword, "Password");
+export const getSessionUser = (): Promise<User> => {
+    return get<User>(endPoints.getSessionUser);
+};
 
-        const data = {
-            new_password: updatedPassword
-        };
+export const updateUser = (user: User): Promise<User> => {
+    return post<User>(endPoints.updateUser, user);
+};
 
-        return this.post<User>(endPoints.updatePassword, data);
-    }
+export const updatePassword = (updatedPassword: string): Promise<User> => {
+    throwIfEmpty(updatedPassword, "Password");
 
-    updateAvatar(fileName: string, file: any): Promise<User> {
-        // TODO: This whole method
-        return this.post<User>(endPoints.updateAvatar, {});
-    }
+    const data = {
+        new_password: updatedPassword
+    };
 
-    setPresence(workspaceId: number, platform: platform): Promise<any> {
-        const data = {
-            workspace_id: workspaceId,
-            platform: platform
-        };
+    return post<User>(endPoints.updatePassword, data);
+};
 
-        return this.post<any>(endPoints.setPresence, data);
-    }
+export const updateAvatar = (fileName: string, file: any): Promise<User> => {
+    // TODO: This whole method
+    return post<User>(endPoints.updateAvatar, {});
+};
 
-    resetPresence(workspaceId: number): Promise<any> {
-        const data = {
-            workspace_id: workspaceId
-        };
+export const setPresence = (workspaceId: number, platform: platform): Promise<any> => {
+    const data = {
+        workspace_id: workspaceId,
+        platform: platform
+    };
 
-        return this.post<any>(endPoints.resetPresence, data);
-    }
+    return post<any>(endPoints.setPresence, data);
+};
 
-    resetPassword(email: string): Promise<any> {
-        this.throwIfEmpty(email, "email");
+export const resetPresence = (workspaceId: number): Promise<any> => {
+    const data = {
+        workspace_id: workspaceId
+    };
 
-        const data = {
-            email: email
-        };
+    return post<any>(endPoints.resetPresence, data);
+};
 
-        return this.post<any>(endPoints.resetPassword, data, false);
-    }
+export const resetPassword = (email: string): Promise<any> => {
+    throwIfEmpty(email, "email");
 
-    setPasswordByCode(resetCode: string, newPassword: string): Promise<User> {
-        this.throwIfEmpty(resetCode, "Reset code");
-        this.throwIfEmpty(newPassword, "New password");
+    const data = {
+        email: email
+    };
 
-        const data = {
-            reset_code: resetCode,
-            new_password: newPassword
-        };
+    return post<any>(endPoints.resetPassword, data, false);
+};
 
-        return this.post<User>(endPoints.setPassword, data, false);
-    }
+export const setPasswordByCode = (resetCode: string, newPassword: string): Promise<User> => {
+    throwIfEmpty(resetCode, "Reset code");
+    throwIfEmpty(newPassword, "New password");
 
-    checkGoogleConnection(): Promise<GoogleConnection> {
-        return this.get<GoogleConnection>(endPoints.isConnectedToGoogle);
-    }
+    const data = {
+        reset_code: resetCode,
+        new_password: newPassword
+    };
 
-    disconnectFromGoogle(): Promise<any> {
-        return this.post<any>(endPoints.disconnectFromGoogle, {});
-    }
+    return post<User>(endPoints.setPassword, data, false);
+};
 
-    //#endregion
+export const checkGoogleConnection = (): Promise<GoogleConnection> => {
+    return get<GoogleConnection>(endPoints.isConnectedToGoogle);
+};
 
-    //#region Workspace methods
+export const disconnectFromGoogle = (): Promise<any> => {
+    return post<any>(endPoints.disconnectFromGoogle, {});
+};
 
-    getWorkspace(workspaceId: number): Promise<Workspace> {
-        const data = {
-            id: workspaceId
-        };
+//#endregion
 
-        return this.get<Workspace>(endPoints.getWorkspace, true, data);
-    }
+//#region Workspace methods
 
-    getDefaultWorkspace(): Promise<Workspace> {
-        return this.get<Workspace>(endPoints.getDefaultWorkspace);
-    }
+export const getWorkspace = (workspaceId: number): Promise<Workspace> => {
+    const data = {
+        id: workspaceId
+    };
 
-    getAllWorkspaces(): Promise<Workspace[]> {
-        return this.get<Workspace[]>(endPoints.getAllWorkspaces);
-    }
+    return get<Workspace>(endPoints.getWorkspace, data, true);
+};
 
-    addWorkspace(options: AddWorkspaceOptions): Promise<Workspace> {
-        return this.post<Workspace>(endPoints.addWorkspace, options);
-    }
+export const getDefaultWorkspace = (): Promise<Workspace> => {
+    return get<Workspace>(endPoints.getDefaultWorkspace);
+};
 
-    updateWorkspace(workspaceId: number, options: UpdateWorkspaceOptions): Promise<Workspace> {
-        const data = {
-            id: workspaceId,
-            ...options
-        };
+export const getAllWorkspaces = (): Promise<Workspace[]> => {
+    return get<Workspace[]>(endPoints.getAllWorkspaces);
+};
 
-        return this.post<Workspace>(endPoints.updateWorkspace, data);
-    }
+export const addWorkspace = (options: AddWorkspaceOptions): Promise<Workspace> => {
+    return post<Workspace>(endPoints.addWorkspace, options);
+};
 
-    removeWorkspace(workspaceId: number, password: string): Promise<any> {
-        this.throwIfEmpty(password, "Password");
+export const updateWorkspace = (workspaceId: number, options: UpdateWorkspaceOptions): Promise<Workspace> => {
+    const data = {
+        id: workspaceId,
+        ...options
+    };
 
-        const data = {
-            id: workspaceId,
-            current_password: password
-        };
+    return post<Workspace>(endPoints.updateWorkspace, data);
+};
 
-        return this.post<any>(endPoints.removeWorkspace, data);
-    }
+export const removeWorkspace = (workspaceId: number, password: string): Promise<any> => {
+    throwIfEmpty(password, "Password");
 
-    getWorkspaceUsers(workspaceId: number): Promise<User[]> {
-        const data = {
-            id: workspaceId
-        };
+    const data = {
+        id: workspaceId,
+        current_password: password
+    };
 
-        return this.get<User[]>(endPoints.getWorkspaceUsers, true, data);
-    }
+    return post<any>(endPoints.removeWorkspace, data);
+};
 
-    //#endregion
+export const getWorkspaceUsers = (workspaceId: number): Promise<User[]> => {
+    const data = {
+        id: workspaceId
+    };
 
-    private checkForAccessToken() {
-        if (this.stringIsUndefinedOrEmpty(this._accessToken)) {
-            throw new Error("No access token set");
-        }
-    }
-
-    private throwIfEmpty(value: string, name: string) {
-        if (this.stringIsUndefinedOrEmpty(value)) {
-            throw new Error(`${name} cannot be undefined or empty`);
-        }
-    }
-
-    private stringIsUndefinedOrEmpty(str?: string): boolean {
-        return str === undefined
-            || str.trim() === "";
-    }
-
-    private async get<T>(
-        endPoint: string,
-        requiresAuthentication: boolean = true,
-        params: {} = {}
-    ): Promise<T> {
-        const url = baseUrl + endPoint;
-        const options: AxiosRequestConfig = {
-            params: params
-        };
-
-        if (requiresAuthentication) {
-            this.checkForAccessToken();
-            options.headers = {
-                "Authorization": `Bearer ${this._accessToken}`
-            };
-        }
-
-        let response: AxiosResponse<any>;
-        try {
-            response = await axios.get(url, options);
-
-            if (response.status >= 300)
-                throw new Error;
-        }
-        catch (e) {
-            throw new Error();
-        }
-
-        const body = response.data;
-        return body;
-    }
-
-    private async post<T>(
-        endPoint: string,
-        data: {},
-        requiresAuthentication: boolean = true,
-        isJson: boolean = false
-    ): Promise<T> {
-        const url = baseUrl + endPoint;
-        const options: AxiosRequestConfig = {};
-
-        if (requiresAuthentication) {
-            this.checkForAccessToken();
-            options.headers = {
-                "Authorization": `Bearer ${this._accessToken}`
-            };
-        }
-
-        if (!isJson) {
-            if (options.headers) {
-                options.headers = {
-                    "content-type": "application/x-www-form-urlencoded",
-                    ...options.headers
-                };
-            }
-            else {
-                options.headers = {
-                    "content-type": "application/x-www-form-urlencoded"
-                };
-            }
-        }
-
-        let response: AxiosResponse<any>;
-        try {
-            response = await axios.post(url, data, options);
-
-            if (response.status >= 300)
-                throw new Error();
-        }
-        catch (e) {
-            throw new Error();
-        }
-
-        const body = response.data;
-        return body;
-    }
-
-    private async delete(
-        endPoint: string,
-        requiresAuthentication: boolean = true,
-        useSyncApi: boolean = false
-    ): Promise<any> {
-        const url = baseUrl + endPoint;
-        const options: AxiosRequestConfig = {};
-
-        if (requiresAuthentication) {
-            this.checkForAccessToken();
-            options.headers = {
-                "Authorization": `Bearer ${this._accessToken}`
-            };
-        }
-
-        const response = await axios.delete(url, options);
-
-        if (response.status >= 300) {
-            throw new Error;
-        }
-    }
+    return get<User[]>(endPoints.getWorkspaceUsers, data, true);
 }
+
+//#endregion
+
+const checkForAccessToken = () => {
+    if (stringIsUndefinedOrEmpty(accessToken())) {
+        throw new Error("No access token set");
+    }
+};
+
+const throwIfEmpty = (value: string, name: string) => {
+    if (stringIsUndefinedOrEmpty(value)) {
+        throw new Error(`${name} cannot be undefined or empty`);
+    }
+};
+
+const stringIsUndefinedOrEmpty = (str?: string): boolean => {
+    return str === undefined
+        || str.trim() === "";
+};
+
+const get = async <T>(
+    endPoint: string,
+    params: {} = {},
+    requiresAuthentication = true
+): Promise<T> => {
+    return await makeTheCall(
+        endPoint,
+        requiresAuthentication,
+        (u, t, o) => {
+            o.params = params;
+            return t.get(u, o);
+        }
+    );
+};
+
+const post = async <T>(
+    endPoint: string,
+    data: {} = {},
+    requiresAuthentication = true
+): Promise<T> => {
+    return await makeTheCall(
+        endPoint,
+        requiresAuthentication,
+        (u, t, o) => t.post(u, data, o)
+    );
+};
+
+const deleteCall = async (
+    endPoint: string,
+    requiresAuthentication = true
+): Promise<any> => {
+    return await makeTheCall(
+        endPoint,
+        requiresAuthentication,
+        (u, t, o) => t.delete(u, o)
+    );
+};
+
+const makeTheCall = async <T>(
+    endPoint: string,
+    requiresAuthentication = true,
+    call: (u: string, t: AxiosStatic, o: AxiosRequestConfig) => Promise<AxiosResponse>
+): Promise<T> => {
+    const apiUrl = baseUrl;
+    const url = apiUrl + endPoint;
+    const options: AxiosRequestConfig = {};
+
+    if (requiresAuthentication) {
+        checkForAccessToken();
+        options.headers = {
+            "Authorization": `Bearer ${accessToken()}`
+        };
+    }
+
+    let response: AxiosResponse<any>;
+    try {
+        response = await call(url, axios, options);
+    }
+    catch (e) {
+        throw new Error();
+    }
+
+    if (response.status >= 300)
+        throw new Error();
+
+    const body = response.data;
+    return body;
+};
+
 
 interface AccessToken {
     access_token: string,
