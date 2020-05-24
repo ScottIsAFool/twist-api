@@ -1,5 +1,8 @@
 const users = "users/";
 const workspaces = "workspaces/";
+const groups = "groups/";
+const channels = "channels/";
+
 export const getSessionUser = users + "get_session_user";
 export const updateUser = users + "update";
 export const updatePassword = users + "update_password";
@@ -27,3 +30,25 @@ export const getUserByEmail = workspaces + "get_user_by_email";
 export const getUserById = workspaces + "get_user_by_id";
 export const getUserInfo = workspaces + "get_user_info";
 export const getUserLocalTime = workspaces + "get_user_local_time";
+
+export const getGroup = groups + "getone";
+export const getAllGroups = groups + "get";
+export const addGroup = groups + "add";
+export const updateGroup = groups + "update";
+export const removeGroup = groups + "remove";
+export const addUserToGroup = groups + "add_user";
+export const addUsersToGroup = groups + "add_users";
+export const removeUserFromGroup = groups + "remove_user";
+export const removeUsersFromGroup = groups + "remove_users";
+
+export const getChannel = channels + "getone";
+export const getAllChannels = channels + "get";
+export const addChannel = channels + "add";
+export const updateChannel = channels + "update";
+export const archiveChannel = channels + "archive";
+export const unarchiveChannel = channels + "unarchive";
+export const removeChannel = channels + "remove";
+export const addUserToChannel = channels + "add_user";
+export const addUsersToChannel = channels + "add_users";
+export const removeUserFromChannel = channels + "remove_user";
+export const removeUsersFromChannel = channels + "remove_users";

@@ -75,14 +75,22 @@ export interface Workspace {
 };
 
 export interface Channel {
-    workspace_id: number;
-    user_ids: number[];
-    name: string;
-    creator: number;
-    color: number;
-    created_ts: number;
-    description: string;
-    archived: boolean;
     id: number;
+    name: string;
+    description: string;
+    creator: number;
+    user_ids?: number[];
+    color: number;
     public: boolean;
+    workspace_id: number;
+    archived: boolean;
+    created_ts: number;
+};
+
+export interface Group {
+    id: number;
+    name: string;
+    description?: string;
+    user_ids: number[];
+    workspace_id: number;
 };

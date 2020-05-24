@@ -1,6 +1,6 @@
 import * as endPoints from './endpoints';
 
-import { AwayMode, Channel, User, Workspace } from './entities';
+import { AwayMode, Channel, Group, User, Workspace } from './entities';
 import { authUrl, baseUrl, tokenUrl } from './consts';
 import axios, { AxiosRequestConfig, AxiosResponse, AxiosStatic } from 'axios';
 
@@ -394,6 +394,298 @@ export const getUserLocalTime = (
 
 //#endregion
 
+//#region Groups methods
+
+export const getGroup = (groupId: number): Promise<Group> => {
+    throwIfInvalidId(groupId, "Group");
+
+    const data = { id: groupId };
+
+    return get<Group>(endPoints.getGroup, data);
+};
+
+export const getAllGroups = (workspaceId: number): Promise<Group[]> => {
+    throwIfInvalidId(workspaceId, "Workspace");
+
+    const data = { id: workspaceId };
+
+    return get<Group[]>(endPoints.getAllGroups, data);
+};
+
+export const addGroup = (
+    workspaceId: number,
+    options: {
+        name: string,
+        user_ids?: number[]
+    }
+): Promise<Group> => {
+    throwIfInvalidId(workspaceId, "Workspace");
+    throwIfEmpty(options.name, "Name");
+
+    const data = {
+        workspace_id: workspaceId,
+        ...options
+    };
+
+    return post<Group>(endPoints.addGroup, data);
+};
+
+export const updateGroup = (
+    groupId: number,
+    options: {
+        name: string
+    }
+): Promise<Group> => {
+    throwIfInvalidId(groupId, "Group");
+    throwIfEmpty(options.name, "Name");
+
+    const data = {
+        id: groupId,
+        ...options
+    };
+
+    return post<Group>(endPoints.updateGroup, data);
+};
+
+export const removeGroup = (groupId: number): Promise<any> => {
+    throwIfInvalidId(groupId, "Group");
+
+    const data = { id: groupId };
+
+    return post<any>(endPoints.removeGroup, data);
+};
+
+export const addUserToGroup = (
+    groupId: number,
+    options: {
+        user_id: number
+    }
+): Promise<any> => {
+    throwIfInvalidId(groupId, "Group");
+    throwIfInvalidId(options.user_id, "User");
+
+    const data = {
+        id: groupId,
+        ...options
+    };
+
+    return post<any>(endPoints.addUserToGroup, data);
+};
+
+export const addUsersToGroup = (
+    groupId: number,
+    options: {
+        user_ids: number[]
+    }
+): Promise<any> => {
+    throwIfInvalidId(groupId, "Group");
+    options.user_ids.forEach(x => throwIfInvalidId(x, "User"));
+
+    const data = {
+        id: groupId,
+        ...options
+    };
+
+    return post<any>(endPoints.addUsersToGroup, data);
+};
+
+export const removeUserFromGroup = (
+    groupId: number,
+    options: {
+        user_id: number
+    }
+): Promise<any> => {
+    throwIfInvalidId(groupId, "Group");
+    throwIfInvalidId(options.user_id, "User");
+
+    const data = {
+        id: groupId,
+        ...options
+    };
+
+    return post<any>(endPoints.removeUserFromGroup, data);
+};
+
+export const removeUsersFromGroup = (
+    groupId: number,
+    options: {
+        user_ids: number[]
+    }
+): Promise<any> => {
+    throwIfInvalidId(groupId, "Group");
+    options.user_ids.forEach(x => throwIfInvalidId(x, "User"));
+
+    const data = {
+        id: groupId,
+        ...options
+    };
+
+    return post<any>(endPoints.removeUsersFromGroup, data);
+};
+
+//#endregion
+
+//#region Channel methods
+
+export const getChannel = (channelId: number): Promise<Channel> => {
+    throwIfInvalidId(channelId, "Channel");
+
+    const data = { id: channelId };
+
+    return get<Channel>(endPoints.getChannel, data);
+};
+
+export const getAllChannels = (
+    workspaceId: number,
+    options: {
+        archived?: boolean
+    }
+): Promise<Channel[]> => {
+    throwIfInvalidId(workspaceId, "Workdspace");
+
+    const data = {
+        workdspace_id: workspaceId,
+        ...options
+    };
+
+    return get<Channel[]>(endPoints.getAllChannels, data);
+};
+
+export const addChannel = (
+    workspaceId: number,
+    options: {
+        name: string,
+        temp_id?: number,
+        user_ids?: number[],
+        color?: number,
+        public?: boolean,
+        description?: string
+    }
+): Promise<Channel> => {
+    throwIfInvalidId(workspaceId, "Workspace");
+    throwIfEmpty(options.name, "Name");
+
+    const data = {
+        workspace_id: workspaceId,
+        ...options
+    };
+
+    return post<Channel>(endPoints.addChannel, data);
+};
+
+export const updateChannel = (
+    groupId: number,
+    options: {
+        name?: string,
+        color?: number,
+        public?: boolean,
+        description?: string
+    }
+): Promise<Channel> => {
+    throwIfInvalidId(groupId, "Group");
+
+    const data = {
+        id: groupId,
+        ...options
+    };
+
+    return post<Channel>(endPoints.updateChannel, data);
+};
+
+export const archiveChannel = (groupId: number): Promise<any> => {
+    throwIfInvalidId(groupId, "Group");
+
+    const data = { id: groupId };
+
+    return post<any>(endPoints.archiveChannel, data);
+};
+
+export const unarchiveChannel = (groupId: number): Promise<any> => {
+    throwIfInvalidId(groupId, "Group");
+
+    const data = { id: groupId };
+
+    return post<any>(endPoints.unarchiveChannel, data);
+};
+
+export const removeChannel = (groupId: number): Promise<any> => {
+    throwIfInvalidId(groupId, "Group");
+
+    const data = { id: groupId };
+
+    return post<any>(endPoints.removeChannel, data);
+};
+
+export const addUserToChannel = (
+    groupId: number,
+    options: {
+        user_id: number
+    }
+): Promise<any> => {
+    throwIfInvalidId(groupId, "Group");
+    throwIfInvalidId(options.user_id, "User");
+
+    const data = {
+        id: groupId,
+        ...options
+    };
+
+    return post<any>(endPoints.addUserToChannel, data);
+};
+
+export const addUsersToChannel = (
+    groupId: number,
+    options: {
+        user_ids: number[]
+    }
+): Promise<any> => {
+    throwIfInvalidId(groupId, "Group");
+    options.user_ids.forEach(x => throwIfInvalidId(x, "User"));
+
+    const data = {
+        id: groupId,
+        ...options
+    };
+
+    return post<any>(endPoints.addUsersToChannel, data);
+};
+
+export const removeUserFromChannel = (
+    groupId: number,
+    options: {
+        user_id: number
+    }
+): Promise<any> => {
+    throwIfInvalidId(groupId, "Group");
+    throwIfInvalidId(options.user_id, "User");
+
+    const data = {
+        id: groupId,
+        ...options
+    };
+
+    return post<any>(endPoints.removeUserFromChannel, data);
+};
+
+export const removeUsersFromChannel = (
+    groupId: number,
+    options: {
+        user_ids: number[]
+    }
+): Promise<any> => {
+    throwIfInvalidId(groupId, "Group");
+    options.user_ids.forEach(x => throwIfInvalidId(x, "User"));
+
+    const data = {
+        id: groupId,
+        ...options
+    };
+
+    return post<any>(endPoints.removeUsersFromChannel, data);
+};
+
+//#endregion
+
 const checkForAccessToken = () => {
     if (stringIsUndefinedOrEmpty(accessToken())) {
         throw new Error("No access token set");
@@ -410,7 +702,7 @@ const throwIfInvalidId = (value: number, name: string) => {
     if (value <= 0) {
         throw new Error(`Invlaid ${name} ID`);
     }
-}
+};
 
 const stringIsUndefinedOrEmpty = (str?: string): boolean => {
     return str === undefined
