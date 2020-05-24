@@ -1,6 +1,6 @@
 import * as endPoints from './endpoints';
 
-import { User, Workspace } from './entities';
+import { AwayMode, User, Workspace } from './entities';
 import { authUrl, baseUrl, tokenUrl } from './consts';
 import axios, { AxiosRequestConfig, AxiosResponse, AxiosStatic } from 'axios';
 
@@ -27,6 +27,21 @@ interface UpdateWorkspaceOptions {
 interface ClientDetails {
     clientSecret: string;
     clientId: string;
+};
+
+export interface UpdateUserOptions {
+    name?: string;
+    email?: string;
+    password?: string;
+    default_workspace?: number;
+    profession?: string;
+    contact_info?: string;
+    timezone?: string;
+    snooze_until?: number;
+    snooze_dnd_start?: string;
+    snooze_dnd_end?: string;
+    away_mode?: AwayMode;
+    off_days?: number[]
 };
 
 const clientDetailsState = create<ClientDetails>();
@@ -82,8 +97,8 @@ export const getSessionUser = (): Promise<User> => {
     return get<User>(endPoints.getSessionUser);
 };
 
-export const updateUser = (user: User): Promise<User> => {
-    return post<User>(endPoints.updateUser, user);
+export const updateUser = (options: UpdateUserOptions): Promise<User> => {
+    return post<User>(endPoints.updateUser, options);
 };
 
 export const updatePassword = (updatedPassword: string): Promise<User> => {
@@ -102,6 +117,10 @@ export const updateAvatar = (fileName: string, file: any): Promise<User> => {
 };
 
 export const setPresence = (workspaceId: number, platform: platform): Promise<any> => {
+    if (workspaceId <= 0) {
+        throw new Error("Invalid Workspace ID");
+    }
+
     const data = {
         workspace_id: workspaceId,
         platform: platform
@@ -111,6 +130,10 @@ export const setPresence = (workspaceId: number, platform: platform): Promise<an
 };
 
 export const resetPresence = (workspaceId: number): Promise<any> => {
+    if (workspaceId <= 0) {
+        throw new Error("Invalid Workspace ID");
+    }
+
     const data = {
         workspace_id: workspaceId
     };
@@ -153,6 +176,10 @@ export const disconnectFromGoogle = (): Promise<any> => {
 //#region Workspace methods
 
 export const getWorkspace = (workspaceId: number): Promise<Workspace> => {
+    if (workspaceId <= 0) {
+        throw new Error("Invalid Workspace ID");
+    }
+
     const data = {
         id: workspaceId
     };
@@ -169,10 +196,24 @@ export const getAllWorkspaces = (): Promise<Workspace[]> => {
 };
 
 export const addWorkspace = (options: AddWorkspaceOptions): Promise<Workspace> => {
+    throwIfEmpty(options.name, "Name");
+
     return post<Workspace>(endPoints.addWorkspace, options);
 };
 
 export const updateWorkspace = (workspaceId: number, options: UpdateWorkspaceOptions): Promise<Workspace> => {
+    if (workspaceId <= 0) {
+        throw new Error("Invalid Workspace ID");
+    }
+
+    if (options.name && stringIsUndefinedOrEmpty(options.name)) {
+        throw new Error("Please provide a valid name to update");
+    }
+
+    if (!options.name && !options.color) {
+        throw new Error("You need to provide either a name or color to update");
+    }
+
     const data = {
         id: workspaceId,
         ...options
@@ -182,6 +223,10 @@ export const updateWorkspace = (workspaceId: number, options: UpdateWorkspaceOpt
 };
 
 export const removeWorkspace = (workspaceId: number, password: string): Promise<any> => {
+    if (workspaceId <= 0) {
+        throw new Error("Invalid Workspace ID");
+    }
+
     throwIfEmpty(password, "Password");
 
     const data = {
@@ -193,6 +238,10 @@ export const removeWorkspace = (workspaceId: number, password: string): Promise<
 };
 
 export const getWorkspaceUsers = (workspaceId: number): Promise<User[]> => {
+    if (workspaceId <= 0) {
+        throw new Error("Invalid Workspace ID");
+    }
+
     const data = {
         id: workspaceId
     };
@@ -287,7 +336,6 @@ const makeTheCall = async <T>(
     const body = response.data;
     return body;
 };
-
 
 interface AccessToken {
     access_token: string,
