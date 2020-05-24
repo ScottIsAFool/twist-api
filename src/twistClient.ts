@@ -1,6 +1,6 @@
 import * as endPoints from './endpoints';
 
-import { AwayMode, Channel, Group, User, Workspace } from './entities';
+import { AwayMode, Channel, Group, Thread, User, Workspace } from './entities';
 import { authUrl, baseUrl, tokenUrl } from './consts';
 import axios, { AxiosRequestConfig, AxiosResponse, AxiosStatic } from 'axios';
 
@@ -682,6 +682,38 @@ export const removeUsersFromChannel = (
     };
 
     return post<any>(endPoints.removeUsersFromChannel, data);
+};
+
+//#endregion
+
+//#region Thread methods
+
+export const getThread = (threadId: number): Promise<Thread> => {
+    throwIfInvalidId(threadId, "Thread");
+
+    const data = { id: threadId };
+
+    return get<Thread>(endPoints.getThread, data);
+};
+
+export const getAllThreads = (
+    channelId: number,
+    options: {
+        filter_by?: string,
+        newer_than_ts?: Date,
+        older_than_ts?: Date,
+        limit?: number,
+        as_ids?: boolean
+    }
+): Promise<Thread[]> => {
+    throwIfInvalidId(channelId, "Channel");
+
+    const data = {
+        channel_id: channelId,
+        ...options
+    };
+
+    return get<Thread[]>(endPoints.getAllThreads, data);
 };
 
 //#endregion

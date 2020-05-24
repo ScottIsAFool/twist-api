@@ -94,3 +94,64 @@ export interface Group {
     user_ids: number[];
     workspace_id: number;
 };
+
+export interface Reactions {
+};
+
+export interface Thread {
+    id: number;
+    title: string;
+    content: string;
+    starred: boolean;
+    creator: number;
+    channel_id: number;
+    workspace_id: number;
+    attachments?: Attachment[];
+    actions: ActionButton[];
+    recipients: number[];
+    participants: number[];
+    groups: number[];
+    reactions: Reactions;
+    comment_count: number;
+    last_obj_index: number;
+    snippet: string;
+    snippet_creator: number;
+    last_updated_ts: number;
+    muted_until?: number;
+    system_message?: SystemMessage;
+    posted_ts: number;
+    last_edited_ts: number;
+};
+
+export interface Attachment {
+    attachment_id: string;
+    title: string;
+    url: string;
+    url_type: string;
+    file_name: string;
+    file_size: number;
+    underlying_type: string;
+    image: string;
+    image_height: number;
+    image_width: number;
+    upload_state: string;
+};
+
+export interface ActionButton {
+    action: string;
+    url?: string;
+    type: string;
+    button_text: string;
+    message?: string;
+};
+
+export interface SystemMessage {
+    is_integration?: any;
+    initiator: number;
+    initiator_name: string;
+    channel_id: number;
+    type: string;
+    comment_id: number;
+    initiator_id: number;
+    thread_id: number;
+};

@@ -2,6 +2,7 @@ const users = "users/";
 const workspaces = "workspaces/";
 const groups = "groups/";
 const channels = "channels/";
+const threads = "threads/";
 
 export const getSessionUser = users + "get_session_user";
 export const updateUser = users + "update";
@@ -52,3 +53,19 @@ export const addUserToChannel = channels + "add_user";
 export const addUsersToChannel = channels + "add_users";
 export const removeUserFromChannel = channels + "remove_user";
 export const removeUsersFromChannel = channels + "remove_users";
+
+export const getThread = threads + "getone";
+export const getAllThreads = threads + "get";
+export const addThread = threads + "add";
+export const updateThread = threads + "update";
+export const removeThread = threads + "remove";
+export const starThread = threads + "star";
+export const unstarThread = threads + "unstar";
+export const moveThread = threads + "move_to_channel";
+export const getUnreadThreads = threads + "get_unread";
+export const markThreadAsRead = threads + "mark_read";
+export const markThreadAsUnread = threads + "mark_unread";
+export const markAllAsRead = threads + "mark_all_read";
+export const clearUnreadThreads = threads + "clear_unread";
+export const muteThread = threads + "mute";
+export const unmuteThread = threads + "unmute";
