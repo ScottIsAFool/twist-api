@@ -73,3 +73,16 @@ export interface Workspace {
     id: number;
     plan: string;
 };
+
+export interface Channel {
+    workspace_id: number;
+    user_ids: number[];
+    name: string;
+    creator: number;
+    color: number;
+    created_ts: number;
+    description: string;
+    archived: boolean;
+    id: number;
+    public: boolean;
+};

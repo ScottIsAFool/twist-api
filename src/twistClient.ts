@@ -1,6 +1,6 @@
 import * as endPoints from './endpoints';
 
-import { AwayMode, User, Workspace } from './entities';
+import { AwayMode, Channel, User, Workspace } from './entities';
 import { authUrl, baseUrl, tokenUrl } from './consts';
 import axios, { AxiosRequestConfig, AxiosResponse, AxiosStatic } from 'axios';
 
@@ -42,6 +42,19 @@ export interface UpdateUserOptions {
     snooze_dnd_end?: string;
     away_mode?: AwayMode;
     off_days?: number[]
+};
+
+export interface AddUserOptions {
+    email: string;
+    name?: string;
+    user_type?: userType,
+    channel_ids?: number[]
+};
+
+export enum userType {
+    guest = "GUEST",
+    user = "USER",
+    admin = "ADMIN"
 };
 
 const clientDetailsState = create<ClientDetails>();
@@ -117,9 +130,7 @@ export const updateAvatar = (fileName: string, file: any): Promise<User> => {
 };
 
 export const setPresence = (workspaceId: number, platform: platform): Promise<any> => {
-    if (workspaceId <= 0) {
-        throw new Error("Invalid Workspace ID");
-    }
+    throwIfInvalidId(workspaceId, "Workspace");
 
     const data = {
         workspace_id: workspaceId,
@@ -130,9 +141,7 @@ export const setPresence = (workspaceId: number, platform: platform): Promise<an
 };
 
 export const resetPresence = (workspaceId: number): Promise<any> => {
-    if (workspaceId <= 0) {
-        throw new Error("Invalid Workspace ID");
-    }
+    throwIfInvalidId(workspaceId, "Workspace");
 
     const data = {
         workspace_id: workspaceId
@@ -176,9 +185,7 @@ export const disconnectFromGoogle = (): Promise<any> => {
 //#region Workspace methods
 
 export const getWorkspace = (workspaceId: number): Promise<Workspace> => {
-    if (workspaceId <= 0) {
-        throw new Error("Invalid Workspace ID");
-    }
+    throwIfInvalidId(workspaceId, "Workspace");
 
     const data = {
         id: workspaceId
@@ -202,9 +209,7 @@ export const addWorkspace = (options: AddWorkspaceOptions): Promise<Workspace> =
 };
 
 export const updateWorkspace = (workspaceId: number, options: UpdateWorkspaceOptions): Promise<Workspace> => {
-    if (workspaceId <= 0) {
-        throw new Error("Invalid Workspace ID");
-    }
+    throwIfInvalidId(workspaceId, "Workspace");
 
     if (options.name && stringIsUndefinedOrEmpty(options.name)) {
         throw new Error("Please provide a valid name to update");
@@ -223,10 +228,7 @@ export const updateWorkspace = (workspaceId: number, options: UpdateWorkspaceOpt
 };
 
 export const removeWorkspace = (workspaceId: number, password: string): Promise<any> => {
-    if (workspaceId <= 0) {
-        throw new Error("Invalid Workspace ID");
-    }
-
+    throwIfInvalidId(workspaceId, "Workspace");
     throwIfEmpty(password, "Password");
 
     const data = {
@@ -238,15 +240,156 @@ export const removeWorkspace = (workspaceId: number, password: string): Promise<
 };
 
 export const getWorkspaceUsers = (workspaceId: number): Promise<User[]> => {
-    if (workspaceId <= 0) {
-        throw new Error("Invalid Workspace ID");
-    }
+    throwIfInvalidId(workspaceId, "Workspace");
 
     const data = {
         id: workspaceId
     };
 
     return get<User[]>(endPoints.getWorkspaceUsers, data, true);
+}
+
+export const getPublicChannels = (workspaceId: number): Promise<Channel[]> => {
+    throwIfInvalidId(workspaceId, "Workspace");
+
+    const data = { id: workspaceId };
+
+    return get<Channel[]>(endPoints.getPublicChannels, data);
+};
+
+//#endregion
+
+//#region Workspace User methods
+
+export const addUser = (workspaceId: number, options: AddUserOptions): Promise<User> => {
+    throwIfInvalidId(workspaceId, "Workspace");
+    throwIfEmpty(options.email, "Email");
+
+    const data = {
+        id: workspaceId,
+        ...options
+    };
+
+    return post<User>(endPoints.addWorkspaceUser, data);
+};
+
+export const resendInvite = (
+    workspaceId: number,
+    options: {
+        email: string,
+        user_id?: number
+    }
+): Promise<any> => {
+    throwIfInvalidId(workspaceId, "Workspace");
+    throwIfEmpty(options.email, "Email");
+
+    const data = {
+        id: workspaceId,
+        ...options
+    };
+
+    return post<any>(endPoints.resendInvite, data);
+};
+
+export const updateWorkspaceUser = (
+    workspaceId: number,
+    options: {
+        user_type: userType,
+        email?: string,
+        user_id?: number
+    }
+): Promise<User> => {
+    throwIfInvalidId(workspaceId, "Workspace");
+    throwIfEmpty(options.user_type, "User type");
+
+    if (options.email && stringIsUndefinedOrEmpty(options.email)) {
+        throw new Error("Please provide a valid email address to update");
+    }
+
+    const data = {
+        id: workspaceId,
+        ...options
+    };
+
+    return post<User>(endPoints.updateWorkspaceUser, data);
+};
+
+export const removeWorkspaceUser = (
+    workspaceId: number,
+    options: {
+        email: string,
+        user_id?: number
+    }
+): Promise<any> => {
+    throwIfInvalidId(workspaceId, "Workspace");
+    throwIfEmpty(options.email, "Email");
+
+    const data = {
+        id: workspaceId,
+        ...options
+    };
+
+    return post<any>(endPoints.removeWorkspaceUser, data);
+};
+
+export const getUserByEmail = (
+    workspaceId: number,
+    email: string
+): Promise<User> => {
+    throwIfInvalidId(workspaceId, "Workspace");
+    throwIfEmpty(email, "Email");
+
+    const data = {
+        id: workspaceId,
+        email: email
+    };
+
+    return post<any>(endPoints.getUserByEmail, data);
+};
+
+export const getUserById = (
+    workspaceId: number,
+    user_id: number
+): Promise<User> => {
+    throwIfInvalidId(workspaceId, "Workspace");
+    throwIfInvalidId(user_id, "User");
+
+    const data = {
+        id: workspaceId,
+        user_id: user_id
+    };
+
+    return post<any>(endPoints.getUserById, data);
+};
+
+export const getUserInfo = (
+    workspaceId: number,
+    user_id: number
+): Promise<User> => {
+    throwIfInvalidId(workspaceId, "Workspace");
+    throwIfInvalidId(user_id, "User");
+
+    const data = {
+        id: workspaceId,
+        user_id: user_id
+    };
+
+    return post<any>(endPoints.getUserInfo, data);
+};
+
+export const getUserLocalTime = (
+    workspaceId: number,
+    user_id: number
+): Promise<Date> => {
+    throwIfInvalidId(workspaceId, "Workspace");
+    throwIfInvalidId(user_id, "User");
+
+    const data = {
+        id: workspaceId,
+        user_id: user_id
+    };
+
+    return post<Date>(endPoints.getUserLocalTime, data);
 }
 
 //#endregion
@@ -262,6 +405,12 @@ const throwIfEmpty = (value: string, name: string) => {
         throw new Error(`${name} cannot be undefined or empty`);
     }
 };
+
+const throwIfInvalidId = (value: number, name: string) => {
+    if (value <= 0) {
+        throw new Error(`Invlaid ${name} ID`);
+    }
+}
 
 const stringIsUndefinedOrEmpty = (str?: string): boolean => {
     return str === undefined
