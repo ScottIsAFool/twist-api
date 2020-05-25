@@ -1,6 +1,6 @@
 import * as endPoints from './endpoints';
 
-import { ActionButton, Attachment, AwayMode, Channel, Comment, Group, Thread, User, Workspace } from './entities';
+import { ActionButton, Attachment, AwayMode, Channel, Comment, Conversation, Group, Thread, User, Workspace } from './entities';
 import { authUrl, baseUrl, tokenUrl } from './consts';
 import axios, { AxiosRequestConfig, AxiosResponse, AxiosStatic } from 'axios';
 
@@ -1020,6 +1020,53 @@ export const markCommentPosition = (
     };
 
     return post<any>(endPoints.markCommentPosition, data);
+};
+
+//#endregion
+
+//#region Conversation methods
+
+export const getConversation = (conversationId: number): Promise<Conversation> => {
+    throwIfInvalidId(conversationId, "Conversation");
+
+    const data = { id: conversationId };
+
+    return get<Conversation>(endPoints.getConversation, data);
+};
+
+export const getOrCreateConversation = (
+    workspaceId: number,
+    userIds: number[]
+): Promise<Conversation> => {
+    throwIfInvalidId(workspaceId, "Workspace");
+    userIds.forEach(x => throwIfInvalidId(x, "User"));
+
+    const data = {
+        workspace_id: workspaceId,
+        user_ids: userIds
+    };
+
+    return post<Conversation>(endPoints.getOrCreateConversation, data);
+};
+
+export const getAllConversations = (
+    workspaceId: number,
+    options: {
+        limit?: number,
+        newer_than_ts?: number,
+        older_than_ts?: number,
+        order_by?: orderBy,
+        archived?: boolean
+    }
+): Promise<Conversation[]> => {
+    throwIfInvalidId(workspaceId, "Workspace");
+
+    const data = {
+        workspace_id: workspaceId,
+        ...options
+    };
+
+    return get<Conversation[]>(endPoints.getAllConversations, data);
 };
 
 //#endregion

@@ -4,6 +4,7 @@ const groups = "groups/";
 const channels = "channels/";
 const threads = "threads/";
 const comments = "comments/";
+const conversations = "conversations/";
 
 export const getSessionUser = users + "get_session_user";
 export const updateUser = users + "update";
@@ -77,3 +78,19 @@ export const addComment = comments + "add";
 export const updateComment = comments + "update";
 export const removeComment = comments + "remove";
 export const markCommentPosition = comments + "mark_position";
+
+export const getConversation = conversations + "getone";
+export const getOrCreateConversation = conversations + "get_or_create";
+export const getAllConversations = conversations + "get";
+export const updateConversation = conversations + "update";
+export const addUserToConversation = conversations + "add_user";
+export const addUsersToConversation = conversations + "add_users";
+export const removeUserFromConversation = conversations + "remove_user";
+export const removeUsersFromConversation = conversations + "remove_users";
+export const archiveConversation = conversations + "archive";
+export const unarchiveConversation = conversations + "unarchive";
+export const getUnreadConversations = conversations + "get_unread";
+export const markConversationAsRead = conversations + "mark_read";
+export const markConversationAsUnread = conversations + "mark_unread";
+export const muteConversation = conversations + "mute";
+export const unmuteConversation = conversations + "unmute";

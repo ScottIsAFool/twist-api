@@ -177,3 +177,38 @@ export interface Comment {
     posted_ts: number;
     last_edited_ts: number;
 };
+
+export interface ConversationMessage {
+    reactions: Reactions;
+    workspace_id: number;
+    creator: number;
+    deleted: boolean;
+    actions: ActionButton[];
+    conversation_id: number;
+    last_edited_ts?: number;
+    direct_mentions: any[];
+    system_message?: SystemMessage;
+    id: number;
+    attachments: Attachment[];
+    posted_ts: number;
+    obj_index: number;
+    content: string;
+};
+
+export interface Conversation {
+    id: number;
+    title?: string;
+    private: boolean;
+    creator: number;
+    last_message: ConversationMessage;
+    workspace_id: number;
+    user_ids: number[];
+    message_count: number;
+    last_obj_index: number;
+    snippet: string;
+    snippet_creators: number[];
+    last_active_ts: number;
+    muted_until_ts?: number;
+    archived: boolean;
+    created_ts: number;
+};
