@@ -1,6 +1,6 @@
 import * as endPoints from './endpoints';
 
-import { ActionButton, Attachment, AwayMode, Channel, Group, Thread, User, Workspace } from './entities';
+import { ActionButton, Attachment, AwayMode, Channel, Comment, Group, Thread, User, Workspace } from './entities';
 import { authUrl, baseUrl, tokenUrl } from './consts';
 import axios, { AxiosRequestConfig, AxiosResponse, AxiosStatic } from 'axios';
 
@@ -61,6 +61,11 @@ export enum filterThreadBy {
     attachedToMe = "attached_to_me",
     everyone = "everyone",
     isStarred = "is_starred"
+};
+
+export enum orderBy {
+    descending = "DESC",
+    ascending = "ASC"
 };
 
 const clientDetailsState = create<ClientDetails>();
@@ -912,6 +917,109 @@ export const unmuteThread = (threadId: number): Promise<Thread> => {
     const data = { id: threadId };
 
     return post<Thread>(endPoints.unmuteThread, data);
+};
+
+//#endregion
+
+//#region Comment methods
+
+export const getComment = (commentId: number): Promise<Comment> => {
+    throwIfInvalidId(commentId, "Comment");
+
+    const data = { id: commentId };
+
+    return get<Comment>(endPoints.getComment, data);
+};
+
+export const getAllComments = (
+    threadId: number,
+    options: {
+        newer_than_ts?: number,
+        older_than_ts?: number,
+        from_obj_index?: number,
+        to_obj_index?: number,
+        limit?: number,
+        order_by?: orderBy,
+        as_ids?: boolean
+    }
+): Promise<Comment[]> => {
+    throwIfInvalidId(threadId, "Thread");
+
+    const data = {
+        id: threadId,
+        ...options
+    };
+
+    return get<Comment[]>(endPoints.getAllComments, data);
+};
+
+export const addComment = (
+    threadId: number,
+    options: {
+        content: string,
+        attachments?: Attachment[],
+        actions?: ActionButton[],
+        recipients?: number[],
+        groups?: number[],
+        temp_id?: number,
+        mark_thread_position?: boolean,
+        send_as_integration?: boolean
+    }
+): Promise<Comment> => {
+    throwIfInvalidId(threadId, "Thread");
+    throwIfEmpty(options.content, "Content");
+
+    const data = {
+        thread_id: threadId,
+        ...options
+    };
+
+    return post<Comment>(endPoints.addComment, data);
+};
+
+export const updateComment = (
+    commentId: number,
+    options: {
+        content?: string,
+        attachments?: Attachment[],
+        actions?: ActionButton[]
+    }
+): Promise<any> => {
+    throwIfInvalidId(commentId, "Comment");
+
+    if (options.content) {
+        throwIfEmpty(options.content, "Content");
+    }
+
+    const data = {
+        id: commentId,
+        ...options
+    };
+
+    return post<Comment>(endPoints.updateComment, data);
+};
+
+export const removeComment = (commentId: number): Promise<any> => {
+    throwIfInvalidId(commentId, "Comment");
+
+    const data = { id: commentId };
+
+    return post<any>(endPoints.removeComment, data);
+};
+
+export const markCommentPosition = (
+    threadId: number,
+    commentId: number
+): Promise<any> => {
+    throwIfInvalidId(threadId, "Thread");
+    throwIfInvalidId(commentId, "Comment");
+
+    const data = {
+        thread_id: threadId,
+        comment_id: commentId
+    };
+
+    return post<any>(endPoints.markCommentPosition, data);
 };
 
 //#endregion

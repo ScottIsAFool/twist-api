@@ -155,3 +155,25 @@ export interface SystemMessage {
     initiator_id: number;
     thread_id: number;
 };
+
+export interface Reactions {
+    "👍": number[];
+};
+
+export interface Comment {
+    id: number;
+    content: string;
+    creator: number;
+    thread_id: number;
+    channel_id: number;
+    workspace_id: number;
+    obj_index: number;
+    attachments?: Attachment[];
+    recipients: number[];
+    groups: number[];
+    reactions: Reactions;
+    is_deleted: boolean;
+    system_message?: SystemMessage;
+    posted_ts: number;
+    last_edited_ts: number;
+};

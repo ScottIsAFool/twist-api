@@ -3,6 +3,7 @@ const workspaces = "workspaces/";
 const groups = "groups/";
 const channels = "channels/";
 const threads = "threads/";
+const comments = "comments/";
 
 export const getSessionUser = users + "get_session_user";
 export const updateUser = users + "update";
@@ -69,3 +70,10 @@ export const markAllAsRead = threads + "mark_all_read";
 export const clearUnreadThreads = threads + "clear_unread";
 export const muteThread = threads + "mute";
 export const unmuteThread = threads + "unmute";
+
+export const getComment = comments + "getone";
+export const getAllComments = comments + "get";
+export const addComment = comments + "add";
+export const updateComment = comments + "update";
+export const removeComment = comments + "remove";
+export const markCommentPosition = comments + "mark_position";
