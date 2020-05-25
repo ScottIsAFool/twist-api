@@ -1,6 +1,6 @@
 import * as endPoints from './endpoints';
 
-import { AwayMode, Channel, Group, Thread, User, Workspace } from './entities';
+import { ActionButton, Attachment, AwayMode, Channel, Group, Thread, User, Workspace } from './entities';
 import { authUrl, baseUrl, tokenUrl } from './consts';
 import axios, { AxiosRequestConfig, AxiosResponse, AxiosStatic } from 'axios';
 
@@ -55,6 +55,12 @@ export enum userType {
     guest = "GUEST",
     user = "USER",
     admin = "ADMIN"
+};
+
+export enum filterThreadBy {
+    attachedToMe = "attached_to_me",
+    everyone = "everyone",
+    isStarred = "is_starred"
 };
 
 const clientDetailsState = create<ClientDetails>();
@@ -699,7 +705,7 @@ export const getThread = (threadId: number): Promise<Thread> => {
 export const getAllThreads = (
     channelId: number,
     options: {
-        filter_by?: string,
+        filter_by?: filterThreadBy,
         newer_than_ts?: Date,
         older_than_ts?: Date,
         limit?: number,
@@ -714,6 +720,198 @@ export const getAllThreads = (
     };
 
     return get<Thread[]>(endPoints.getAllThreads, data);
+};
+
+export const addThread = (
+    channelId: number,
+    options: {
+        title: string,
+        content: string,
+        attachments?: Attachment[],
+        actions?: ActionButton[],
+        recipients?: number[],
+        groups?: number[],
+        temp_id?: number,
+        send_as_integration?: boolean
+    }
+): Promise<Thread> => {
+    throwIfInvalidId(channelId, "Channel");
+    throwIfEmpty(options.title, "Title");
+    throwIfEmpty(options.content, "Content");
+
+    const data = {
+        channel_id: channelId,
+        ...options
+    };
+
+    return post<Thread>(endPoints.addThread, data);
+};
+
+export const updateThread = (
+    threadId: number,
+    options: {
+        title?: string,
+        content?: string,
+        attachments?: Attachment[],
+        actions?: ActionButton[],
+    }
+): Promise<Thread> => {
+    throwIfInvalidId(threadId, "Thread");
+
+    if (options.title && stringIsUndefinedOrEmpty(options.title)) {
+        throw new Error("You must set a valid title");
+    }
+
+    if (options.content && stringIsUndefinedOrEmpty(options.content)) {
+        throw new Error("You must set valid content");
+    }
+
+    const data = {
+        id: threadId,
+        ...options
+    };
+
+    return post<Thread>(endPoints.updateThread, data);
+};
+
+export const removeThread = (threadId: number): Promise<any> => {
+    throwIfInvalidId(threadId, "Thread");
+
+    const data = { id: threadId };
+
+    return post<any>(endPoints.removeThread, data);
+};
+
+export const starThread = (threadId: number): Promise<any> => {
+    throwIfInvalidId(threadId, "Thread");
+
+    const data = { id: threadId };
+
+    return post<any>(endPoints.starThread, data);
+};
+
+export const unstarThread = (threadId: number): Promise<any> => {
+    throwIfInvalidId(threadId, "Thread");
+
+    const data = { id: threadId };
+
+    return post<any>(endPoints.unstarThread, data);
+};
+
+export const moveThread = (
+    threadId: number,
+    options: {
+        channelId: number
+    }
+): Promise<any> => {
+    throwIfInvalidId(threadId, "Thread");
+    throwIfInvalidId(options.channelId, "Channel");
+
+    const data = {
+        id: threadId,
+        to_channel: options.channelId
+    };
+
+    return post<any>(endPoints.moveThread, data);
+};
+
+export const getUnreadThreads = (
+    workspaceId: number
+): Promise<Thread[]> => {
+    throwIfInvalidId(workspaceId, "Workspace");
+
+    const data = { workspace_id: workspaceId };
+
+    return get<Thread[]>(endPoints.getUnreadThreads, data);
+};
+
+export const markThreadAsRead = (
+    threadId: number,
+    options: {
+        obj_index: number
+    }
+): Promise<Thread[]> => {
+    throwIfInvalidId(threadId, "Thread");
+
+    const data = {
+        id: threadId,
+        ...options
+    };
+
+    return get<Thread[]>(endPoints.markThreadAsRead, data);
+};
+
+export const markThreadAsUnread = (
+    threadId: number,
+    options: {
+        obj_index: number
+    }
+): Promise<Thread[]> => {
+    throwIfInvalidId(threadId, "Thread");
+
+    const data = {
+        id: threadId,
+        ...options
+    };
+
+    return get<Thread[]>(endPoints.markThreadAsUnread, data);
+};
+
+export const markAllThreadsAsRead = (
+    options: {
+        workspaceId?: number,
+        channelId?: number
+    }
+): Promise<any> => {
+    if (options.workspaceId) {
+        throwIfInvalidId(options.workspaceId, "Workspace");
+    }
+
+    if (options.channelId) {
+        throwIfInvalidId(options.channelId, "Channel");
+    }
+
+    if (!options.workspaceId && !options.channelId) {
+        throw new Error("Please set either a workspace ID or a channel ID");
+    }
+
+    return post<any>(endPoints.markAllAsRead, options);
+};
+
+export const clearUnreadThreads = (workspaceId: number): Promise<any> => {
+    throwIfInvalidId(workspaceId, "Workspace");
+
+    const data = { workspace_id: workspaceId };
+
+    return post<any>(endPoints.clearUnreadThreads, data);
+};
+
+export const muteThread = (
+    threadId: number,
+    options: {
+        minutes: number
+    }
+): Promise<Thread> => {
+    throwIfInvalidId(threadId, "Thread");
+
+    if (options.minutes < 0) {
+        throw new Error("Invalid value for minutes");
+    }
+
+    const data = {
+        id: threadId,
+        ...options
+    };
+
+    return post<Thread>(endPoints.muteThread, data);
+};
+
+export const unmuteThread = (threadId: number): Promise<Thread> => {
+    throwIfInvalidId(threadId, "Thread");
+
+    const data = { id: threadId };
+
+    return post<Thread>(endPoints.unmuteThread, data);
 };
 
 //#endregion
